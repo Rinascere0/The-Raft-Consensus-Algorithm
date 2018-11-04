@@ -1,0 +1,17 @@
+15:47:30.175507 raft.go:386: term1 1 timeout
+15:47:30.175566 raft.go:398: term2 1 become leader
+15:47:30.431634 raft.go:386: term0 2 timeout
+15:47:30.431898 raft.go:398: term1 2 become leader
+15:47:30.449615 raft.go:386: term2 1 timeout
+15:47:30.449650 raft.go:398: term3 1 become leader
+15:47:30.680694 raft.go:386: term3 1 timeout
+15:47:30.680761 raft.go:398: term4 1 become leader
+15:47:30.719987 raft.go:386: term1 2 timeout
+15:47:30.720031 raft.go:398: term2 2 become leader
+15:47:30.768628 raft.go:386: term1 1 timeout
+15:47:30.768922 raft.go:398: term2 1 become leader
+15:47:30.997127 raft.go:386: term2 0 timeout
+15:47:30.997393 raft.go:398: term3 0 become leader
+15:47:31.008075 raft.go:386: term2 2 timeout
+15:47:31.069811 raft.go:386: term4 1 timeout
+15:47:31.069865 raft.go:398: term5 1 become leader

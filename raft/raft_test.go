@@ -1,15 +1,19 @@
 package raft
 
-import "github.com/cmu440/rpc"
-import "log"
-import "sync"
-import "testing"
-import "runtime"
-import crand "crypto/rand"
-import "encoding/base64"
-import "sync/atomic"
-import "time"
-import "fmt"
+import (
+	crand "crypto/rand"
+	"encoding/base64"
+	"fmt"
+	"log"
+	"runtime"
+	"strconv"
+	"sync"
+	"sync/atomic"
+	"testing"
+	"time"
+
+	"github.com/cmu440/rpc"
+)
 
 //
 // Raft tests.
@@ -43,7 +47,7 @@ func TestReElection2A(t *testing.T) {
 	servers := 3
 	cfg := make_config(t, servers, false)
 	defer cfg.cleanup()
-
+	// time.Sleep(10 * time.Second)
 	fmt.Printf("Test (2A): Re-election\n")
 	fmt.Printf("Basic 1 leader\n")
 	leader1 := cfg.checkOneLeader()
@@ -54,6 +58,64 @@ func TestReElection2A(t *testing.T) {
 
 	// a new leader should be elected
 	fmt.Printf("Checking for a new leader\n")
+	// time.Sleep(1 * time.Second)
+	cfg.checkOneLeader()
+
+	fmt.Printf("======================= END =======================\n\n")
+}
+
+func TestHidden2A(t *testing.T) {
+	fmt.Printf("==================== 3 SERVERS ====================\n")
+	servers := 3
+	cfg := make_config(t, servers, false)
+	defer cfg.cleanup()
+	// time.Sleep(10 * time.Second)
+	fmt.Printf("Test (2A): Re-election\n")
+	fmt.Printf("Basic 1 leader\n")
+	leader1 := cfg.checkOneLeader()
+
+	// if the leader disconnects, a new one should be elected.
+	fmt.Printf("Disconnecting leader\n")
+	cfg.disconnect(leader1)
+
+	// a new leader should be elected
+	fmt.Printf("Checking for a new leader\n")
+	cfg.checkOneLeader()
+
+	fmt.Printf("reconnect leader\n")
+	fmt.Printf(strconv.Itoa(leader1) + "\n")
+	cfg.connect(leader1)
+
+	fmt.Printf("Checking current leader\n")
+	cfg.checkOneLeader()
+
+	fmt.Printf("Get current leader\n")
+	leader1 = cfg.checkOneLeader()
+
+	fmt.Printf("Disconnecting leader + 1 more peer\n")
+	// fmt.Printf(strconv.Itoa(leader1) + "\n")
+	// fmt.Printf(strconv.Itoa((leader1+1)%servers) + "\n")
+	cfg.disconnect((leader1 + 1) % servers)
+	cfg.disconnect(leader1)
+
+	fmt.Printf("waiting a bit\n")
+	time.Sleep(1000 * time.Millisecond)
+
+	fmt.Printf("check no leader\n")
+	cfg.checkNoLeader()
+
+	fmt.Printf("reconnect peer\n")
+	// fmt.Printf(strconv.Itoa((leader1 + 1) % servers))
+	cfg.connect((leader1 + 1) % servers)
+
+	fmt.Printf("check one leader\n")
+	cfg.checkOneLeader()
+
+	fmt.Printf("reconnect leader\n")
+	// fmt.Printf(strconv.Itoa(leader1))
+	cfg.connect(leader1)
+
+	fmt.Printf("Checking current leader\n")
 	cfg.checkOneLeader()
 
 	fmt.Printf("======================= END =======================\n\n")
@@ -505,6 +567,7 @@ func (cfg *config) checkOneLeader() int {
 	for iters := 0; iters < 10; iters++ {
 		time.Sleep(500 * time.Millisecond)
 		leaders := make(map[int][]int)
+		// fmt.Println(cfg.n)
 		for i := 0; i < cfg.n; i++ {
 			if cfg.connected[i] {
 				if _, t, leader := cfg.rafts[i].GetState(); leader {
@@ -533,6 +596,7 @@ func (cfg *config) checkOneLeader() int {
 
 // check that everyone agrees on the term.
 func (cfg *config) checkTerms() int {
+	// time.Sleep(1 * time.Second)
 	term := -1
 	for i := 0; i < cfg.n; i++ {
 		if cfg.connected[i] {
@@ -551,6 +615,7 @@ func (cfg *config) checkTerms() int {
 func (cfg *config) checkNoLeader() {
 	for i := 0; i < cfg.n; i++ {
 		if cfg.connected[i] {
+			fmt.Println("no leader: " + strconv.Itoa(i))
 			_, _, is_leader := cfg.rafts[i].GetState()
 			if is_leader {
 				cfg.t.Fatalf("expected no leader, but %v claims to be leader", i)
